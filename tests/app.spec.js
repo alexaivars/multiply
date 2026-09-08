@@ -1,4 +1,36 @@
 import { test, expect } from '@playwright/test';
+test('series answers are checked once and advance only with Next', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Start practice' }).click();
+  const answer = page.getByRole('textbox', { name: 'Your answer' });
+  await expect(answer).toBeFocused();
+  await expect(page.locator('#equation')).toHaveText('4 × 1 = ?');
+  for (const invalid of ['', ' ', '-1', '1.2', 'abc']) {
+    await answer.fill(invalid);
+    await answer.press('Enter');
+    await expect(page.getByRole('status')).toHaveText('Type a whole number, like 12.');
+    await expect(page.getByRole('button', { name: 'Next' })).toBeDisabled();
+  }
+  await answer.fill('5');
+  await answer.press('Enter');
+  await expect(page.getByRole('status')).toContainText('Keep learning: 4 × 1 = 4.');
+  await answer.press('Enter');
+  await expect(page.locator('#position')).toHaveText('Question 1 of 9');
+  await expect(answer).toHaveAttribute('readonly', '');
+  await page.getByRole('button', { name: 'Next' }).dblclick();
+  await expect(page.locator('#position')).toHaveText('Question 2 of 9');
+  await expect(answer).toBeFocused();
+  await expect(answer).toHaveValue('');
+  await expect(page.getByRole('status')).toBeEmpty();
+  for (let multiplier = 2; multiplier <= 9; multiplier++) {
+    await expect(page.locator('#equation')).toHaveText(`4 × ${multiplier} = ?`);
+    await answer.fill(String(4 * multiplier));
+    await answer.press('Enter');
+    await expect(page.getByRole('status')).toContainText('Correct!');
+    await page.getByRole('button', { name: 'Next' }).click();
+  }
+  await expect(page.getByRole('heading', { name: 'Round complete' })).toBeVisible();
+});
 test('choose a mode and table, or all tables without a selector', async ({ page }) => {
   await page.goto('/');
   await expect(page).toHaveTitle('Multiply — Times table practice');

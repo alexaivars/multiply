@@ -1,8 +1,9 @@
-import { MODES, validChoice } from './core.js';
+import { MODES, validChoice, seriesDeck, createRound, checkAnswer, nextQuestion } from './core.js';
 
 const app = document.querySelector('#app');
 let mode = 'series';
 let table = 4;
+let round;
 
 function choices() {
   app.innerHTML = `
@@ -45,10 +46,72 @@ function selectionText() {
 
 function start() {
   if (!validChoice(mode, table)) return;
+  if (mode === 'series') {
+    round = createRound(seriesDeck(table));
+    question();
+    return;
+  }
   app.innerHTML = `<section class="practice"><button id="back" class="text-button">← Back to choices</button>
     <h1 tabindex="-1">${MODES[mode].label}</h1><p>${selectionText()}</p></section>`;
   app.querySelector('#back').addEventListener('click', choices);
   app.querySelector('h1').focus();
+}
+
+function backToChoices() {
+  round = null;
+  choices();
+  app.querySelector('h1').focus();
+}
+
+function question() {
+  const [a, b] = round.deck[round.index];
+  app.innerHTML = `<section class="practice" aria-labelledby="practice-title">
+    <button id="back" class="text-button" type="button">← Back to choices</button>
+    <div class="practice-heading"><h1 id="practice-title">${MODES[mode].label}</h1><p>${mode === 'all' ? 'All tables' : `Table ${table}`}</p></div>
+    <p id="position">Question ${round.index + 1} of ${round.deck.length}</p>
+    <div class="question-card">
+      <h2 class="equation" id="equation">${a} × ${b} <span aria-hidden="true">= ?</span></h2>
+      <form id="answer-form" novalidate>
+        <label for="answer">Your answer</label>
+        <input id="answer" name="answer" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" aria-describedby="equation feedback">
+        <p id="feedback" class="feedback" role="status" aria-live="polite" aria-atomic="true"></p>
+        <div class="answer-actions"><button id="check" class="primary" type="submit">Check answer</button><button id="next" type="button" disabled>Next <span aria-hidden="true">→</span></button></div>
+      </form>
+    </div>
+  </section>`;
+  app.querySelector('#back').addEventListener('click', backToChoices);
+  app.querySelector('#answer-form').addEventListener('submit', submit);
+  // A second tap on the now-disabled Next button must not steal answer focus.
+  app.querySelector('#next').addEventListener('pointerdown', event => event.preventDefault());
+  app.querySelector('#next').addEventListener('click', () => {
+    if (!nextQuestion(round)) return;
+    if (round.index === round.deck.length) {
+      app.innerHTML = `<section class="practice"><h1 tabindex="-1">Round complete</h1><button id="back">Back to choices</button></section>`;
+      app.querySelector('#back').addEventListener('click', backToChoices);
+      app.querySelector('h1').focus();
+    } else question();
+  });
+  app.querySelector('#answer').focus();
+}
+
+function submit(event) {
+  event.preventDefault();
+  const input = app.querySelector('#answer');
+  const result = checkAnswer(round, input.value);
+  if (result.status === 'locked') return;
+  const feedback = app.querySelector('#feedback');
+  if (result.status === 'invalid') {
+    feedback.textContent = 'Type a whole number, like 12.';
+    input.setAttribute('aria-invalid', 'true');
+    input.focus();
+    return;
+  }
+  input.removeAttribute('aria-invalid');
+  input.readOnly = true;
+  app.querySelector('#check').disabled = true;
+  app.querySelector('#next').disabled = false;
+  feedback.textContent = result.correct ? `Correct! ${result.equation}. Nicely done.` : `Keep learning: ${result.equation}. You’ll get to practise it again.`;
+  feedback.dataset.result = result.correct ? 'correct' : 'learn';
 }
 
 choices();
