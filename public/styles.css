@@ -76,7 +76,7 @@ progress { display: block; width: 100%; height: 6px; border: 0; border-radius: 4
 progress::-webkit-progress-bar { background: var(--wash); }
 progress::-webkit-progress-value { background: var(--green); }
 progress::-moz-progress-bar { background: var(--green); }
-.score-strip { display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 16px; padding-block: 24px; margin: 20px 0; border-bottom: 1px solid var(--line); }
+.score-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 5.5rem), 1fr)); gap: 16px; padding-block: 24px; margin: 20px 0; border-bottom: 1px solid var(--line); }
 .score-strip dt { color: var(--muted); }
 .score-strip dd { margin: 8px 0 0; font-size: 1.7rem; font-weight: 600; font-variant-numeric: tabular-nums; }
 .score-strip dd.rate { font-size: 1.3rem; padding-top: 6px; }
