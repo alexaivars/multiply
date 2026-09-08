@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { choosePractice } from './practice.js';
+import { STORAGE_KEY } from '../public/statistics.js';
 
 test('only the available question action appears, with numeric entry and no disabled controls', async ({ page }) => {
   await page.goto('/');
@@ -35,7 +36,8 @@ test('double clicks cannot trigger an action that replaced the clicked control',
   await page.getByRole('button', { name: 'Check answer' }).dblclick();
   await expect(page.locator('#feedback')).toContainText('Correct!');
   await expect(page.locator('#position')).toHaveText('Question 1 of 9');
-  await expect(page.locator('#round-stats dd')).toHaveText(['1', '1', '100%']);
+  expect(await page.evaluate(key => JSON.parse(localStorage.getItem(key)).overall, STORAGE_KEY)).toEqual({ correct: 1, answered: 1 });
+  await expect(page.locator('.score-strip')).toHaveCount(0);
   await page.getByRole('button', { name: 'Next' }).dblclick();
   await expect(page.locator('#position')).toHaveText('Question 2 of 9');
   await expect(page.locator('#feedback')).toBeEmpty();
@@ -64,6 +66,9 @@ test.describe('touch actions', () => {
   test('a double tap keeps feedback visible, and a later tap advances once', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('button', { name: /Series 1–9/ }).tap();
+    // Read the new choice screen before a separate intentional selection.
+    // These controls can occupy the same coordinates in the compact layout.
+    await page.waitForTimeout(450);
     await page.getByRole('button', { name: 'Table 4', exact: true }).tap();
     await page.getByRole('spinbutton').fill('4');
     const action = page.locator('#question-action');

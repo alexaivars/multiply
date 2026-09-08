@@ -20,7 +20,7 @@ test('partial rounds save once, refresh preserves totals, and switching modes st
   await expect(page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: 'Table 4', exact: true }) }).locator('dd')).toHaveText(['1', '1', '100%']);
   await page.getByRole('button', { name: 'Back to choices' }).click();
   await answerFirst(page, '0', 'Mixed all');
-  await expect(page.locator('#round-stats dd')).toHaveText(['0', '1', '0%']);
+  await expect(page.locator('.score-strip')).toHaveCount(0);
   const firstFactor = Number((await page.locator('#equation').textContent())[0]);
   await page.getByRole('button', { name: 'Next' }).click();
   await page.getByRole('button', { name: 'Back to choices' }).click();

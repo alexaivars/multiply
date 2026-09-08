@@ -27,7 +27,7 @@ for (const [label, count] of [['Mixed 1–9', 9], ['Mixed all', 81]]) {
     await page.getByRole('button', { name: 'Practice again' }).click();
     await expect(page.getByRole('heading', { name: label })).toBeVisible();
     await expect(page.locator('#position')).toHaveText(`Question 1 of ${count}`);
-    await expect(page.locator('.score-strip dd')).toHaveText(['0', '0', 'No answers yet']);
+    await expect(page.locator('.score-strip')).toHaveCount(0);
     expect(await page.locator('#equation').textContent()).not.toBe([...seen][0]);
   });
 }
@@ -36,7 +36,7 @@ test('series answers are checked once and advance only with Next', async ({ page
   await choosePractice(page);
   const answer = page.getByRole('spinbutton', { name: 'Your answer' });
   await expect(answer).toBeFocused();
-  await expect(page.locator('.score-strip dd')).toHaveText(['0', '0', 'No answers yet']);
+  await expect(page.locator('.score-strip')).toHaveCount(0);
   await expect(page.locator('#equation')).toHaveText('4 × 1 = ?');
   for (const invalid of ['', ' ', '-1', '1.2', 'abc']) {
     await answer.fill('');
@@ -48,7 +48,7 @@ test('series answers are checked once and advance only with Next', async ({ page
   }
   await answer.fill('5');
   await answer.press('Enter');
-  await expect(page.getByRole('status')).toContainText('Keep learning: 4 × 1 = 4.');
+  await expect(page.getByRole('status')).toContainText('The answer is 4 × 1 = 4.');
   await answer.press('Enter');
   await expect(page.locator('#position')).toHaveText('Question 1 of 9');
   await expect(answer).toHaveAttribute('readonly', '');
@@ -68,7 +68,7 @@ test('series answers are checked once and advance only with Next', async ({ page
   await expect(page.locator('.score-strip dd')).toHaveText(['8', '9', '89%']);
   await page.getByRole('button', { name: 'Practice again' }).click();
   await expect(page.locator('#equation')).toHaveText('4 × 1 = ?');
-  await expect(page.locator('.score-strip dd')).toHaveText(['0', '0', 'No answers yet']);
+  await expect(page.locator('.score-strip')).toHaveCount(0);
 });
 test('choose a mode and table, or all tables without a selector', async ({ page }) => {
   await page.goto('/');

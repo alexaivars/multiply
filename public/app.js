@@ -54,10 +54,12 @@ function showStorageNotice() {
 }
 
 function choices() {
+  document.querySelector('.site-footer')?.toggleAttribute('hidden', false);
+  document.querySelector('.install-help')?.removeAttribute('open');
   app.innerHTML = `
     <section aria-labelledby="choices-title">
       <div class="intro"><h1 id="choices-title" tabindex="-1">Get to know<br>your times tables.</h1>
-      <p>A little practice, at your own pace.<br>Choose how you’d like to learn today.</p></div>
+      <p>Choose how to practise.</p></div>
       <div class="choices" role="group" aria-label="Practice choices">
         ${Object.entries(MODES).map(([key, value], index) => `
           <button class="choice" type="button" data-mode="${key}">
@@ -75,6 +77,7 @@ function choices() {
 }
 
 function tableChoice() {
+  document.querySelector('.site-footer')?.toggleAttribute('hidden', true);
   app.innerHTML = `<section class="practice" aria-labelledby="table-title">
     <button id="back" class="text-button" type="button">← Back to choices</button>
     <h1 id="table-title" tabindex="-1">Which table?</h1>
@@ -103,6 +106,7 @@ function backToChoices() {
 }
 
 function question() {
+  document.querySelector('.site-footer')?.toggleAttribute('hidden', true);
   const [a, b] = round.deck[round.index];
   app.innerHTML = `<section class="practice" aria-labelledby="practice-title">
     <button id="back" class="text-button" type="button">← Back to choices</button>
@@ -118,8 +122,7 @@ function question() {
         <div class="answer-actions"><button id="question-action" class="primary" type="submit">Check answer</button></div>
       </form>
     </div>
-    <div id="round-stats" aria-label="This round">${scoreMarkup(round)}</div>
-    ${mode === 'all' ? '<p class="round-note">You can stop whenever you like. Every answer is practice.</p>' : ''}
+    ${mode === 'all' ? '<p class="round-note">You can stop whenever you like.</p>' : ''}
   </section>`;
   app.querySelector('#back').addEventListener('click', backToChoices);
   app.querySelector('#answer-form').addEventListener('submit', submit);
@@ -150,11 +153,10 @@ function submit(event) {
   const action = app.querySelector('#question-action');
   action.type = 'button';
   action.innerHTML = 'Next <span aria-hidden="true">→</span>';
-  feedback.textContent = result.correct ? `Correct! ${result.equation}. Nicely done.` : `Keep learning: ${result.equation}. You’ll get to practise it again.`;
+  feedback.textContent = result.correct ? `Correct! ${result.equation}.` : `The answer is ${result.equation}.`;
   feedback.dataset.result = result.correct ? 'correct' : 'learn';
   store.record(mode, result.table, result.correct);
   showStorageNotice();
-  app.querySelector('#round-stats').innerHTML = scoreMarkup(round);
   app.querySelector('#round-progress').value = round.answered;
 }
 
@@ -167,12 +169,11 @@ function scoreMarkup(counts) {
 }
 
 function summary() {
+  document.querySelector('.site-footer')?.toggleAttribute('hidden', true);
   app.innerHTML = `<section class="practice summary" aria-labelledby="summary-title">
     <p class="summary-mode">${MODES[mode].label} · ${mode === 'all' ? 'All tables' : `Table ${table}`}</p>
     <h1 id="summary-title" tabindex="-1">Round complete</h1>
-    <p>You made time to learn. That’s something to feel good about.</p>
     ${scoreMarkup(round)}
-    <p>Every question helps you get to know your tables a little better.</p>
     <div class="answer-actions"><button id="again" class="primary" type="button">Practice again</button><button id="back" type="button">Back to choices</button></div>
   </section>`;
   app.querySelector('#again').addEventListener('click', start);
@@ -181,11 +182,11 @@ function summary() {
 }
 
 function statisticsView() {
+  document.querySelector('.site-footer')?.toggleAttribute('hidden', true);
   round = null;
   app.innerHTML = `<section aria-labelledby="stats-title">
     <button id="back" class="text-button" type="button">← Back to choices</button>
     <h1 id="stats-title" tabindex="-1">Your practice so far.</h1>
-    <p>Small steps add up. Here’s every answer you’ve checked.</p>
     <section aria-labelledby="overall-title"><h2 id="overall-title">All practice</h2>${scoreMarkup(store.data.overall)}</section>
     ${statisticsGroup('By table', Object.entries(store.data.tables).map(([key, counts]) => [`Table ${key}`, counts]))}
     ${statisticsGroup('By practice choice', Object.entries(store.data.modes).map(([key, counts]) => [MODES[key].label, counts]))}
