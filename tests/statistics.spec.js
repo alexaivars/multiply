@@ -4,7 +4,7 @@ import { STORAGE_KEY, emptyStatistics } from '../public/statistics.js';
 
 async function answerFirst(page, answer = '4', mode = 'Series 1–9') {
   await choosePractice(page, mode);
-  await page.getByRole('textbox', { name: 'Your answer' }).fill(answer);
+  await page.getByRole('spinbutton', { name: 'Your answer' }).fill(answer);
   await page.getByRole('button', { name: 'Check answer' }).click();
 }
 const overall = page => page.getByRole('region', { name: 'All practice', exact: true }).locator('dd');
@@ -12,7 +12,7 @@ const overall = page => page.getByRole('region', { name: 'All practice', exact: 
 test('partial rounds save once, refresh preserves totals, and switching modes starts fresh', async ({ page }) => {
   await page.goto('/');
   await answerFirst(page);
-  await page.getByRole('textbox').press('Enter');
+  await page.getByRole('spinbutton').press('Enter');
   await page.reload();
   await expect(page.getByRole('heading', { name: /Get to know/ })).toBeVisible();
   await page.getByRole('button', { name: 'Statistics', exact: true }).click();

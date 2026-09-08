@@ -17,7 +17,7 @@ test('keyboard-only practice, visible focus, and live feedback work', async ({ p
     await expect(page.locator(selector)).toBeFocused();
     await page.keyboard.press('Enter');
   }
-  await expect(page.getByRole('textbox')).toBeFocused();
+  await expect(page.getByRole('spinbutton')).toBeFocused();
   await page.keyboard.type('4');
   await page.keyboard.press('Enter');
   await expect(page.locator('#feedback')).toContainText('Correct!');
@@ -25,7 +25,7 @@ test('keyboard-only practice, visible focus, and live feedback work', async ({ p
   await page.keyboard.press(tabKey);
   await expect(page.getByRole('button', { name: 'Next' })).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('textbox')).toBeFocused();
+  await expect(page.getByRole('spinbutton')).toBeFocused();
   await expect(page.locator('#equation')).toHaveText('4 × 2 = ?');
   expect(errors).toEqual([]);
 });
@@ -45,7 +45,7 @@ for (const [width, height] of [[390, 844], [844, 390], [768, 1024], [1024, 768],
     };
     await fits();
     for (let i = 1; i <= 9; i++) {
-      await page.getByRole('textbox').fill(String(i * 4));
+      await page.getByRole('spinbutton').fill(String(i * 4));
       await page.getByRole('button', { name: 'Check answer' }).click();
       await page.getByRole('button', { name: 'Next' }).click();
     }
@@ -66,7 +66,7 @@ test('text resizing keeps choices and practice controls usable', async ({ page }
   await page.addStyleTag({ content: ':root { font-size: 36px; }' });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await choosePractice(page);
-  await page.getByRole('textbox').fill('4');
+  await page.getByRole('spinbutton').fill('4');
   await page.getByRole('button', { name: 'Check answer' }).click();
   await page.getByRole('button', { name: 'Next' }).click();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

@@ -15,7 +15,7 @@ for (const [label, count] of [['Mixed 1–9', 9], ['Mixed all', 81]]) {
       seen.add(equation);
       const [a, b] = equation.match(/\d/g).map(Number);
       if (count === 9) expect(a).toBe(4);
-      await page.getByRole('textbox', { name: 'Your answer' }).fill(String(a * b));
+      await page.getByRole('spinbutton', { name: 'Your answer' }).fill(String(a * b));
       await page.getByRole('button', { name: 'Check answer' }).click();
       await expect(page.getByRole('status')).toContainText(`Correct! ${a} × ${b} = ${a * b}`);
       await page.getByRole('button', { name: 'Next' }).click();
@@ -34,15 +34,17 @@ for (const [label, count] of [['Mixed 1–9', 9], ['Mixed all', 81]]) {
 test('series answers are checked once and advance only with Next', async ({ page }) => {
   await page.goto('/');
   await choosePractice(page);
-  const answer = page.getByRole('textbox', { name: 'Your answer' });
+  const answer = page.getByRole('spinbutton', { name: 'Your answer' });
   await expect(answer).toBeFocused();
   await expect(page.locator('.score-strip dd')).toHaveText(['0', '0', 'No answers yet']);
   await expect(page.locator('#equation')).toHaveText('4 × 1 = ?');
   for (const invalid of ['', ' ', '-1', '1.2', 'abc']) {
-    await answer.fill(invalid);
+    await answer.fill('');
+    await answer.pressSequentially(invalid);
     await answer.press('Enter');
     await expect(page.getByRole('status')).toHaveText('Type a whole number, like 12.');
-    await expect(page.getByRole('button', { name: 'Next' })).toBeDisabled();
+    await expect(page.getByRole('button', { name: 'Next' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Check answer' })).toBeEnabled();
   }
   await answer.fill('5');
   await answer.press('Enter');

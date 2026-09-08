@@ -7,6 +7,32 @@ let table = 4;
 let round;
 const store = createStatisticsStore();
 const resetDialog = document.querySelector('#reset-dialog');
+let pointerType;
+let lastTouch;
+app.addEventListener('pointerdown', event => {
+  pointerType = event.pointerType;
+  // Keep answer focus if another tap lands on the action for a new question.
+  if (event.target.closest('#question-action')) event.preventDefault();
+});
+app.addEventListener('click', event => {
+  if (!event.target.closest('button')) return;
+  // WebKit may label a touch-generated click as mouse; trust pointerdown first.
+  const touch = (pointerType || event.pointerType) === 'touch' && event.detail !== 0;
+  const repeatedTouch = touch && lastTouch && event.timeStamp - lastTouch.time < 400
+    && Math.hypot(event.clientX - lastTouch.x, event.clientY - lastTouch.y) < 24;
+  if (event.detail > 1 || repeatedTouch) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    return;
+  }
+  if (touch) lastTouch = { time: event.timeStamp, x: event.clientX, y: event.clientY };
+}, true);
+app.addEventListener('keydown', event => {
+  if (event.repeat && (event.key === 'Enter' || event.key === ' ')) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }
+}, true);
 document.querySelector('#statistics-button').addEventListener('click', statisticsView);
 document.querySelector('.brand').addEventListener('click', event => {
   event.preventDefault();
@@ -87,9 +113,9 @@ function question() {
       <h2 class="equation" id="equation">${a} × ${b} <span aria-hidden="true">= ?</span></h2>
       <form id="answer-form" novalidate>
         <label for="answer">Your answer</label>
-        <input id="answer" name="answer" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" aria-describedby="equation feedback">
+        <input id="answer" name="answer" type="number" inputmode="numeric" min="0" step="1" autocomplete="off" enterkeyhint="done" aria-describedby="equation feedback">
         <p id="feedback" class="feedback" role="status" aria-live="polite" aria-atomic="true"></p>
-        <div class="answer-actions"><button id="check" class="primary" type="submit">Check answer</button><button id="next" type="button" disabled>Next <span aria-hidden="true">→</span></button></div>
+        <div class="answer-actions"><button id="question-action" class="primary" type="submit">Check answer</button></div>
       </form>
     </div>
     <div id="round-stats" aria-label="This round">${scoreMarkup(round)}</div>
@@ -97,9 +123,9 @@ function question() {
   </section>`;
   app.querySelector('#back').addEventListener('click', backToChoices);
   app.querySelector('#answer-form').addEventListener('submit', submit);
-  // A second tap on the now-disabled Next button must not steal answer focus.
-  app.querySelector('#next').addEventListener('pointerdown', event => event.preventDefault());
-  app.querySelector('#next').addEventListener('click', () => {
+  app.querySelector('#question-action').addEventListener('click', () => {
+    // Submission handles the unchecked state; Next is an explicit button action.
+    if (!round.checked) return;
     if (!nextQuestion(round)) return;
     if (round.index === round.deck.length) summary();
     else question();
@@ -121,8 +147,9 @@ function submit(event) {
   }
   input.removeAttribute('aria-invalid');
   input.readOnly = true;
-  app.querySelector('#check').disabled = true;
-  app.querySelector('#next').disabled = false;
+  const action = app.querySelector('#question-action');
+  action.type = 'button';
+  action.innerHTML = 'Next <span aria-hidden="true">→</span>';
   feedback.textContent = result.correct ? `Correct! ${result.equation}. Nicely done.` : `Keep learning: ${result.equation}. You’ll get to practise it again.`;
   feedback.dataset.result = result.correct ? 'correct' : 'learn';
   store.record(mode, result.table, result.correct);
