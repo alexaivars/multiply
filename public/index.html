@@ -13,9 +13,18 @@
 <body>
   <header class="site-header">
     <a class="brand" href="./" aria-label="Multiply home"><span class="brand-mark" aria-hidden="true">×</span> Multiply</a>
-    <span class="header-note">One question at a time.</span>
+    <button id="statistics-button" type="button">Statistics</button>
   </header>
+  <p id="storage-notice" class="notice" role="status" aria-live="polite" hidden></p>
   <main id="app"></main>
+  <dialog id="reset-dialog" aria-labelledby="reset-title" aria-describedby="reset-description">
+    <h2 id="reset-title">Reset your statistics?</h2>
+    <p id="reset-description">This removes all your saved results for Multiply in this browser. You can’t undo it.</p>
+    <form method="dialog" class="answer-actions">
+      <button value="cancel" autofocus>Keep my statistics</button>
+      <button value="reset" class="primary">Reset statistics</button>
+    </form>
+  </dialog>
   <footer class="site-footer">Your pace. Your practice.</footer>
   <noscript><p class="notice">Please enable JavaScript to practise your times tables.</p></noscript>
 </body>

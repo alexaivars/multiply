@@ -1,9 +1,31 @@
 import { MODES, validChoice, makeDeck, createRound, checkAnswer, nextQuestion, successRate } from './core.js';
+import { createStatisticsStore } from './statistics.js';
 
 const app = document.querySelector('#app');
 let mode = 'series';
 let table = 4;
 let round;
+const store = createStatisticsStore();
+const resetDialog = document.querySelector('#reset-dialog');
+document.querySelector('#statistics-button').addEventListener('click', statisticsView);
+document.querySelector('.brand').addEventListener('click', event => {
+  event.preventDefault();
+  backToChoices();
+});
+resetDialog.addEventListener('close', () => {
+  if (resetDialog.returnValue === 'reset') {
+    store.reset();
+    showStorageNotice();
+    statisticsView();
+    app.querySelector('#reset').focus();
+  }
+});
+
+function showStorageNotice() {
+  const notice = document.querySelector('#storage-notice');
+  notice.textContent = store.notice;
+  notice.hidden = !store.notice;
+}
 
 function choices() {
   app.innerHTML = `
@@ -105,6 +127,8 @@ function submit(event) {
   app.querySelector('#next').disabled = false;
   feedback.textContent = result.correct ? `Correct! ${result.equation}. Nicely done.` : `Keep learning: ${result.equation}. You’ll get to practise it again.`;
   feedback.dataset.result = result.correct ? 'correct' : 'learn';
+  store.record(mode, result.table, result.correct);
+  showStorageNotice();
   app.querySelector('#round-stats').innerHTML = scoreMarkup(round);
   app.querySelector('#round-progress').value = round.answered;
 }
@@ -131,4 +155,30 @@ function summary() {
   app.querySelector('h1').focus();
 }
 
+function statisticsView() {
+  round = null;
+  app.innerHTML = `<section aria-labelledby="stats-title">
+    <button id="back" class="text-button" type="button">← Back to choices</button>
+    <h1 id="stats-title" tabindex="-1">Your practice so far.</h1>
+    <p>Small steps add up. Here’s every answer you’ve checked.</p>
+    <section aria-labelledby="overall-title"><h2 id="overall-title">All practice</h2>${scoreMarkup(store.data.overall)}</section>
+    ${statisticsGroup('By table', Object.entries(store.data.tables).map(([key, counts]) => [`Table ${key}`, counts]))}
+    ${statisticsGroup('By practice choice', Object.entries(store.data.modes).map(([key, counts]) => [MODES[key].label, counts]))}
+    <div class="statistics-footer"><p>Success rate = correct answers ÷ answered questions × 100, rounded to a whole percent. Only your first answer counts.</p>
+    <p>These statistics belong to this browser and device. They are not synced and may be lost if browser data is cleared.</p>
+    <button id="reset" type="button">Reset statistics</button></div>
+  </section>`;
+  app.querySelector('#back').addEventListener('click', backToChoices);
+  app.querySelector('#reset').addEventListener('click', () => {
+    resetDialog.returnValue = '';
+    resetDialog.showModal();
+  });
+  app.querySelector('h1').focus();
+}
+
+function statisticsGroup(title, entries) {
+  return `<section class="statistics-group"><h2>${title}</h2><ul class="statistics-list">${entries.map(([label, counts]) => `<li><h3>${label}</h3>${scoreMarkup(counts)}</li>`).join('')}</ul></section>`;
+}
+
 choices();
+showStorageNotice();

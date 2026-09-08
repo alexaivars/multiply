@@ -84,7 +84,17 @@ progress::-moz-progress-bar { background: var(--green); }
 .summary { padding-top: 24px; }
 .summary .score-strip { border-top: 1px solid var(--line); margin-block: 32px; }
 .site-footer { border-top: 1px solid var(--line); padding-block: 24px; margin-top: 36px; }
-.notice { max-width: 980px; margin: 16px auto; }
+.notice { max-width: 980px; margin: 16px auto; padding: 16px 20px; border-left: 4px solid #996221; background: #f2e8d6; color: #533b1c; }
+.statistics-group { margin-top: 40px; }
+.statistics-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.statistics-list li { display: grid; grid-template-columns: 1fr 2fr; align-items: center; gap: 24px; border-bottom: 1px solid var(--line); }
+.statistics-list h3 { font-size: 1.15rem; font-weight: 600; }
+.statistics-list .score-strip { border: 0; margin: 0; }
+.statistics-footer { margin-top: 40px; color: var(--muted); max-width: 720px; }
+dialog { background: var(--white); color: var(--ink); border: 1px solid var(--line); border-radius: 16px; padding: 28px; width: min(600px, calc(100% - 32px)); max-height: calc(100dvh - 32px); overflow: auto; }
+dialog::backdrop { background: rgb(26 42 34 / .45); }
+dialog h2 { margin-top: 0; }
+dialog .answer-actions { grid-template-columns: 1fr; }
 @media (max-width: 640px) {
   body { padding-inline: max(20px, env(safe-area-inset-left)) max(20px, env(safe-area-inset-right)); }
   .site-header { padding-block: 18px; }
@@ -102,6 +112,13 @@ progress::-moz-progress-bar { background: var(--green); }
   .answer-actions { grid-template-columns: 1fr; gap: 12px; }
   .score-strip { gap: 12px; }
   .score-strip dd.rate { font-size: 1.1rem; }
+  .statistics-list li { display: block; padding-top: 8px; }
+  .statistics-list .score-strip { padding-top: 0; }
+  #statistics-button { padding-inline: 14px; }
+}
+@media (max-width: 380px) {
+  .score-strip { grid-template-columns: 1fr 1fr; }
+  .score-strip > div:last-child { grid-column: 1 / -1; }
 }
 @media (max-width: 340px) { .tables { grid-template-columns: repeat(4, minmax(48px, 1fr)); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }
