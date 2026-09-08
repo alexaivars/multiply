@@ -22,6 +22,13 @@ for (const [label, count] of [['Mixed 1–9', 9], ['Mixed all', 81]]) {
     }
     expect(seen.size).toBe(count);
     await expect(page.getByRole('heading', { name: 'Round complete' })).toBeVisible();
+    await expect(page.locator('.score-strip dd')).toHaveText([String(count), String(count), '100%']);
+    await page.evaluate(() => { Math.random = () => 0.5; });
+    await page.getByRole('button', { name: 'Practice again' }).click();
+    await expect(page.getByRole('heading', { name: label })).toBeVisible();
+    await expect(page.locator('#position')).toHaveText(`Question 1 of ${count}`);
+    await expect(page.locator('.score-strip dd')).toHaveText(['0', '0', 'No answers yet']);
+    expect(await page.locator('#equation').textContent()).not.toBe([...seen][0]);
   });
 }
 test('series answers are checked once and advance only with Next', async ({ page }) => {
@@ -29,6 +36,7 @@ test('series answers are checked once and advance only with Next', async ({ page
   await page.getByRole('button', { name: 'Start practice' }).click();
   const answer = page.getByRole('textbox', { name: 'Your answer' });
   await expect(answer).toBeFocused();
+  await expect(page.locator('.score-strip dd')).toHaveText(['0', '0', 'No answers yet']);
   await expect(page.locator('#equation')).toHaveText('4 × 1 = ?');
   for (const invalid of ['', ' ', '-1', '1.2', 'abc']) {
     await answer.fill(invalid);
@@ -55,6 +63,10 @@ test('series answers are checked once and advance only with Next', async ({ page
     await page.getByRole('button', { name: 'Next' }).click();
   }
   await expect(page.getByRole('heading', { name: 'Round complete' })).toBeVisible();
+  await expect(page.locator('.score-strip dd')).toHaveText(['8', '9', '89%']);
+  await page.getByRole('button', { name: 'Practice again' }).click();
+  await expect(page.locator('#equation')).toHaveText('4 × 1 = ?');
+  await expect(page.locator('.score-strip dd')).toHaveText(['0', '0', 'No answers yet']);
 });
 test('choose a mode and table, or all tables without a selector', async ({ page }) => {
   await page.goto('/');

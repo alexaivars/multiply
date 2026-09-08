@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validChoice, seriesDeck, createRound, parseAnswer, checkAnswer, nextQuestion, makeDeck, shuffle } from '../public/core.js';
+import { validChoice, seriesDeck, createRound, parseAnswer, checkAnswer, nextQuestion, makeDeck, shuffle, successRate } from '../public/core.js';
 test('only the three modes and tables 1–9 are accepted', () => {
   for (const mode of ['series', 'mixed']) {
     for (let table = 1; table <= 9; table++) assert.equal(validChoice(mode, table), true);
@@ -41,6 +41,13 @@ test('mixed decks contain every required pair exactly once across deterministic 
 test('only safe whole-number answers are accepted', () => {
   for (const input of ['', ' ', '\n', '-1', '2.5', '1e1', 'abc', '+4', 'Infinity', '9007199254740992']) assert.equal(parseAnswer(input), null);
   for (const input of ['0', '4', '04', ' 81 ']) assert.equal(parseAnswer(input), Number(input));
+});
+
+test('success rates use underlying counts and round to the nearest whole percent', () => {
+  assert.equal(successRate({ correct: 0, answered: 0 }), 'No answers yet');
+  assert.equal(successRate({ correct: 0, answered: 1 }), '0%');
+  assert.equal(successRate({ correct: 2, answered: 3 }), '67%');
+  assert.equal(successRate({ correct: 8, answered: 9 }), '89%');
 });
 
 test('invalid input, duplicate submissions and premature Next never score or skip', () => {

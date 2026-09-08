@@ -1,4 +1,4 @@
-import { MODES, validChoice, makeDeck, createRound, checkAnswer, nextQuestion } from './core.js';
+import { MODES, validChoice, makeDeck, createRound, checkAnswer, nextQuestion, successRate } from './core.js';
 
 const app = document.querySelector('#app');
 let mode = 'series';
@@ -62,6 +62,7 @@ function question() {
     <button id="back" class="text-button" type="button">← Back to choices</button>
     <div class="practice-heading"><h1 id="practice-title">${MODES[mode].label}</h1><p>${mode === 'all' ? 'All tables' : `Table ${table}`}</p></div>
     <p id="position">Question ${round.index + 1} of ${round.deck.length}</p>
+    <progress id="round-progress" value="${round.answered}" max="${round.deck.length}" aria-label="Questions answered"></progress>
     <div class="question-card">
       <h2 class="equation" id="equation">${a} × ${b} <span aria-hidden="true">= ?</span></h2>
       <form id="answer-form" novalidate>
@@ -71,6 +72,8 @@ function question() {
         <div class="answer-actions"><button id="check" class="primary" type="submit">Check answer</button><button id="next" type="button" disabled>Next <span aria-hidden="true">→</span></button></div>
       </form>
     </div>
+    <div id="round-stats" aria-label="This round">${scoreMarkup(round)}</div>
+    ${mode === 'all' ? '<p class="round-note">You can stop whenever you like. Every answer is practice.</p>' : ''}
   </section>`;
   app.querySelector('#back').addEventListener('click', backToChoices);
   app.querySelector('#answer-form').addEventListener('submit', submit);
@@ -78,11 +81,8 @@ function question() {
   app.querySelector('#next').addEventListener('pointerdown', event => event.preventDefault());
   app.querySelector('#next').addEventListener('click', () => {
     if (!nextQuestion(round)) return;
-    if (round.index === round.deck.length) {
-      app.innerHTML = `<section class="practice"><h1 tabindex="-1">Round complete</h1><button id="back">Back to choices</button></section>`;
-      app.querySelector('#back').addEventListener('click', backToChoices);
-      app.querySelector('h1').focus();
-    } else question();
+    if (round.index === round.deck.length) summary();
+    else question();
   });
   app.querySelector('#answer').focus();
 }
@@ -105,6 +105,30 @@ function submit(event) {
   app.querySelector('#next').disabled = false;
   feedback.textContent = result.correct ? `Correct! ${result.equation}. Nicely done.` : `Keep learning: ${result.equation}. You’ll get to practise it again.`;
   feedback.dataset.result = result.correct ? 'correct' : 'learn';
+  app.querySelector('#round-stats').innerHTML = scoreMarkup(round);
+  app.querySelector('#round-progress').value = round.answered;
+}
+
+function scoreMarkup(counts) {
+  return `<dl class="score-strip">
+    <div><dt>Correct</dt><dd>${counts.correct}</dd></div>
+    <div><dt>Answered</dt><dd>${counts.answered}</dd></div>
+    <div><dt>Success rate</dt><dd class="rate">${successRate(counts)}</dd></div>
+  </dl>`;
+}
+
+function summary() {
+  app.innerHTML = `<section class="practice summary" aria-labelledby="summary-title">
+    <p class="summary-mode">${MODES[mode].label} · ${mode === 'all' ? 'All tables' : `Table ${table}`}</p>
+    <h1 id="summary-title" tabindex="-1">Round complete</h1>
+    <p>You made time to learn. That’s something to feel good about.</p>
+    ${scoreMarkup(round)}
+    <p>Every question helps you get to know your tables a little better.</p>
+    <div class="answer-actions"><button id="again" class="primary" type="button">Practice again</button><button id="back" type="button">Back to choices</button></div>
+  </section>`;
+  app.querySelector('#again').addEventListener('click', start);
+  app.querySelector('#back').addEventListener('click', backToChoices);
+  app.querySelector('h1').focus();
 }
 
 choices();

@@ -33,6 +33,10 @@ export function createRound(deck) {
   return { deck, index: 0, answered: 0, correct: 0, checked: false };
 }
 
+export function successRate({ correct, answered }) {
+  return answered === 0 ? 'No answers yet' : `${Math.round(correct / answered * 100)}%`;
+}
+
 export function parseAnswer(value) {
   if (typeof value !== 'string' || !/^\d+$/.test(value.trim())) return null;
   const answer = Number(value.trim());
