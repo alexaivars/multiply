@@ -80,6 +80,11 @@ progress::-moz-progress-bar { background: var(--green); }
 .round-note, .summary-mode { color: var(--muted); }
 .summary .score-strip { margin-block: 0 24px; }
 .site-footer { padding-block: 0 24px; margin-top: 0; }
+.site-footer p { margin-bottom: 12px; }
+.install-help { max-width: 680px; }
+.install-help summary { cursor: pointer; padding-block: 12px; min-height: 48px; text-decoration: underline; text-underline-offset: 5px; color: var(--green); }
+.install-help li { padding: 6px 0 6px 4px; }
+#offline-status { margin-top: 12px; }
 .notice { max-width: 980px; margin: 16px auto; padding: 16px 20px; border-left: 4px solid #996221; background: #f2e8d6; color: #533b1c; }
 .statistics-group { margin-top: 40px; }
 .statistics-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
@@ -113,3 +118,4 @@ dialog .answer-actions { grid-template-columns: 1fr; }
   .score-strip > div:last-child { grid-column: 1 / -1; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }
+@media (display-mode: standalone) { .site-footer { display: none; } }

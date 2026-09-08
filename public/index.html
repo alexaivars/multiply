@@ -4,17 +4,25 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#f6f5ef">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Multiply">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="description" content="A little daily practice with the 1–9 times tables. Go in order or mix things up, at your own pace.">
   <title>Multiply — Times table practice</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./styles.css">
   <script type="module" src="./app.js"></script>
+  <script type="module" src="./pwa.js"></script>
 </head>
 <body>
   <header class="site-header">
     <a class="brand" href="./" aria-label="Multiply home"><span class="brand-mark" aria-hidden="true">×</span> Multiply</a>
   </header>
   <p id="storage-notice" class="notice" role="status" aria-live="polite" hidden></p>
+  <p id="offline-status" class="notice" aria-live="polite" hidden></p>
   <main id="app"></main>
   <dialog id="reset-dialog" aria-labelledby="reset-title" aria-describedby="reset-description">
     <h2 id="reset-title">Reset your statistics?</h2>
@@ -24,6 +32,18 @@
       <button value="reset" class="primary">Reset statistics</button>
     </form>
   </dialog>
+  <footer class="site-footer" hidden>
+    <details class="install-help">
+      <summary>Add to iPhone or iPad</summary>
+      <ol>
+        <li>Open this app’s secure web address in Safari.</li>
+        <li>Open Share, then choose <strong>Add to Home Screen</strong>.</li>
+        <li>If you see <strong>Open as Web App</strong>, leave it on. Tap <strong>Add</strong>.</li>
+        <li>Open Multiply from your Home Screen while connected to download the app for offline use.</li>
+      </ol>
+      <p>Statistics stay in this browser or installed app. They don’t sync between devices and may not transfer from Safari.</p>
+    </details>
+  </footer>
   <noscript><p class="notice">Please enable JavaScript to practise your times tables.</p></noscript>
 </body>
 </html>
