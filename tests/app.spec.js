@@ -1,4 +1,29 @@
 import { test, expect } from '@playwright/test';
+
+for (const [label, count] of [['Mixed 1–9', 9], ['Mixed all', 81]]) {
+  test(`${label} completes a shuffled deck with no duplicate or revealed questions`, async ({ page }) => {
+    await page.addInitScript(() => { Math.random = () => 0; });
+    await page.goto('/');
+    await page.getByRole('button', { name: new RegExp(label) }).click();
+    await page.getByRole('button', { name: 'Start practice' }).click();
+    const seen = new Set();
+    for (let i = 1; i <= count; i++) {
+      await expect(page.locator('#position')).toHaveText(`Question ${i} of ${count}`);
+      const equation = await page.locator('#equation').textContent();
+      expect(equation).toMatch(/^\d × \d = \?$/);
+      expect(seen.has(equation)).toBe(false);
+      seen.add(equation);
+      const [a, b] = equation.match(/\d/g).map(Number);
+      if (count === 9) expect(a).toBe(4);
+      await page.getByRole('textbox', { name: 'Your answer' }).fill(String(a * b));
+      await page.getByRole('button', { name: 'Check answer' }).click();
+      await expect(page.getByRole('status')).toContainText(`Correct! ${a} × ${b} = ${a * b}`);
+      await page.getByRole('button', { name: 'Next' }).click();
+    }
+    expect(seen.size).toBe(count);
+    await expect(page.getByRole('heading', { name: 'Round complete' })).toBeVisible();
+  });
+}
 test('series answers are checked once and advance only with Next', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Start practice' }).click();

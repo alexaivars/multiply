@@ -1,4 +1,4 @@
-import { MODES, validChoice, seriesDeck, createRound, checkAnswer, nextQuestion } from './core.js';
+import { MODES, validChoice, makeDeck, createRound, checkAnswer, nextQuestion } from './core.js';
 
 const app = document.querySelector('#app');
 let mode = 'series';
@@ -46,15 +46,8 @@ function selectionText() {
 
 function start() {
   if (!validChoice(mode, table)) return;
-  if (mode === 'series') {
-    round = createRound(seriesDeck(table));
-    question();
-    return;
-  }
-  app.innerHTML = `<section class="practice"><button id="back" class="text-button">← Back to choices</button>
-    <h1 tabindex="-1">${MODES[mode].label}</h1><p>${selectionText()}</p></section>`;
-  app.querySelector('#back').addEventListener('click', choices);
-  app.querySelector('h1').focus();
+  round = createRound(makeDeck(mode, table));
+  question();
 }
 
 function backToChoices() {

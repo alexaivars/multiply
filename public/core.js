@@ -13,6 +13,22 @@ export function seriesDeck(table) {
   return Array.from({ length: 9 }, (_, index) => [table, index + 1]);
 }
 
+// Fisher–Yates; inject a random source for repeatable deck checks.
+export function shuffle(deck, random = Math.random) {
+  const shuffled = deck.map(pair => [...pair]);
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
+
+export function makeDeck(mode, table, random = Math.random) {
+  if (!validChoice(mode, table)) throw new RangeError('Choose a practice mode and table.');
+  const deck = mode === 'all' ? Array.from({ length: 9 }, (_, i) => seriesDeck(i + 1)).flat() : seriesDeck(table);
+  return mode === 'series' ? deck : shuffle(deck, random);
+}
+
 export function createRound(deck) {
   return { deck, index: 0, answered: 0, correct: 0, checked: false };
 }
