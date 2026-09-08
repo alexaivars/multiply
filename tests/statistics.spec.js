@@ -35,6 +35,7 @@ test('reset cancel and Escape preserve results; confirm removes only app statist
   await page.goto('/');
   await page.evaluate(() => localStorage.setItem('unrelated', 'keep'));
   await answerFirst(page);
+  await page.getByRole('button', { name: 'Back to choices' }).click();
   await page.getByRole('button', { name: 'Statistics', exact: true }).click();
   await page.getByRole('button', { name: 'Reset statistics', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Keep my statistics' })).toBeFocused();
@@ -70,6 +71,7 @@ for (const operation of ['getItem', 'setItem', 'removeItem']) {
     await page.goto('/');
     await answerFirst(page);
     await expect(page.locator('#feedback')).toContainText('Correct!');
+    await page.getByRole('button', { name: 'Back to choices' }).click();
     await page.getByRole('button', { name: 'Statistics', exact: true }).click();
     await expect(overall(page)).toHaveText(['1', '1', '100%']);
     if (operation !== 'removeItem') await expect(page.locator('#storage-notice')).toContainText('will not be saved');

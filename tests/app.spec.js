@@ -81,7 +81,7 @@ test('choose a mode and table, or all tables without a selector', async ({ page 
   await expect(page.locator('[data-mode], #start')).toHaveCount(0);
   await page.getByRole('button', { name: 'Back to choices' }).click();
   await page.getByRole('button', { name: /Mixed 1–9/ }).click();
-  await expect(page.locator('main')).toContainText('Mixed 1–9 · 9 questions · shuffled');
+  await expect(page.locator('.site-header')).toContainText('Mixed 1–9 · 9 questions · shuffled');
   await page.getByRole('button', { name: 'Table 7', exact: true }).click();
   await expect(page.locator('#equation')).toHaveText(/^7 × [1-9] = \?$/);
   await page.getByRole('button', { name: 'Back to choices' }).click();

@@ -33,11 +33,21 @@ app.addEventListener('keydown', event => {
     event.stopImmediatePropagation();
   }
 }, true);
-document.querySelector('#statistics-button').addEventListener('click', statisticsView);
-document.querySelector('.brand').addEventListener('click', event => {
-  event.preventDefault();
-  backToChoices();
-});
+function renderHeader(title = '', detail = '', id = 'screen-title') {
+  const header = document.querySelector('.site-header');
+  header.innerHTML = `<a class="brand" href="./" aria-label="Multiply home"><span class="brand-mark" aria-hidden="true">×</span> Multiply</a>
+    ${title ? `<button id="header-back" class="text-button" type="button">← Back to choices</button>
+    <div class="screen-heading"><h1 id="${id}" tabindex="-1">${title}</h1>${detail ? `<p>${detail}</p>` : ''}</div>` : ''}`;
+  header.querySelector('.brand').addEventListener('click', event => {
+    event.preventDefault();
+    backToChoices();
+  });
+  header.querySelector('#header-back')?.addEventListener('click', backToChoices);
+}
+
+function bindStatistics() {
+  app.querySelector('#statistics-button').addEventListener('click', statisticsView);
+}
 resetDialog.addEventListener('close', () => {
   if (resetDialog.returnValue === 'reset') {
     store.reset();
@@ -54,6 +64,7 @@ function showStorageNotice() {
 }
 
 function choices() {
+  renderHeader();
   document.querySelector('.site-footer')?.toggleAttribute('hidden', false);
   document.querySelector('.install-help')?.removeAttribute('open');
   app.innerHTML = `
@@ -68,7 +79,9 @@ function choices() {
             <span class="choice-indicator" aria-hidden="true">→</span>
           </button>`).join('')}
       </div>
+      <button id="statistics-button" class="text-button secondary-action" type="button">Statistics</button>
     </section>`;
+  bindStatistics();
   app.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => {
     mode = button.dataset.mode;
     if (mode === 'all') start();
@@ -77,20 +90,17 @@ function choices() {
 }
 
 function tableChoice() {
+  renderHeader('Which table?', `${MODES[mode].label} · ${MODES[mode].detail}`, 'table-title');
   document.querySelector('.site-footer')?.toggleAttribute('hidden', true);
   app.innerHTML = `<section class="practice" aria-labelledby="table-title">
-    <button id="back" class="text-button" type="button">← Back to choices</button>
-    <h1 id="table-title" tabindex="-1">Which table?</h1>
-    <p>${MODES[mode].label} · ${MODES[mode].detail}</p>
     <div class="tables" role="group" aria-label="Choose a table">${Array.from({ length: 9 }, (_, i) => i + 1).map(n => `
       <button type="button" data-table="${n}" aria-label="Table ${n}">${n}</button>`).join('')}</div>
   </section>`;
-  app.querySelector('#back').addEventListener('click', backToChoices);
   app.querySelectorAll('[data-table]').forEach(button => button.addEventListener('click', () => {
     table = Number(button.dataset.table);
     start();
   }));
-  app.querySelector('h1').focus();
+  document.querySelector('#table-title').focus();
 }
 
 function start() {
@@ -106,11 +116,10 @@ function backToChoices() {
 }
 
 function question() {
+  renderHeader(MODES[mode].label, mode === 'all' ? 'All tables' : `Table ${table}`, 'practice-title');
   document.querySelector('.site-footer')?.toggleAttribute('hidden', true);
   const [a, b] = round.deck[round.index];
   app.innerHTML = `<section class="practice" aria-labelledby="practice-title">
-    <button id="back" class="text-button" type="button">← Back to choices</button>
-    <div class="practice-heading"><h1 id="practice-title">${MODES[mode].label}</h1><p>${mode === 'all' ? 'All tables' : `Table ${table}`}</p></div>
     <p id="position">Question ${round.index + 1} of ${round.deck.length}</p>
     <progress id="round-progress" value="${round.answered}" max="${round.deck.length}" aria-label="Questions answered"></progress>
     <div class="question-card">
@@ -124,7 +133,6 @@ function question() {
     </div>
     ${mode === 'all' ? '<p class="round-note">You can stop whenever you like.</p>' : ''}
   </section>`;
-  app.querySelector('#back').addEventListener('click', backToChoices);
   app.querySelector('#answer-form').addEventListener('submit', submit);
   app.querySelector('#question-action').addEventListener('click', () => {
     // Submission handles the unchecked state; Next is an explicit button action.
@@ -169,24 +177,22 @@ function scoreMarkup(counts) {
 }
 
 function summary() {
+  renderHeader('Round complete', `${MODES[mode].label} · ${mode === 'all' ? 'All tables' : `Table ${table}`}`, 'summary-title');
   document.querySelector('.site-footer')?.toggleAttribute('hidden', true);
   app.innerHTML = `<section class="practice summary" aria-labelledby="summary-title">
-    <p class="summary-mode">${MODES[mode].label} · ${mode === 'all' ? 'All tables' : `Table ${table}`}</p>
-    <h1 id="summary-title" tabindex="-1">Round complete</h1>
     ${scoreMarkup(round)}
-    <div class="answer-actions"><button id="again" class="primary" type="button">Practice again</button><button id="back" type="button">Back to choices</button></div>
+    <div class="answer-actions"><button id="again" class="primary" type="button">Practice again</button><button id="statistics-button" type="button">Statistics</button></div>
   </section>`;
   app.querySelector('#again').addEventListener('click', start);
-  app.querySelector('#back').addEventListener('click', backToChoices);
-  app.querySelector('h1').focus();
+  bindStatistics();
+  document.querySelector('#summary-title').focus();
 }
 
 function statisticsView() {
+  renderHeader('Your practice so far.', '', 'stats-title');
   document.querySelector('.site-footer')?.toggleAttribute('hidden', true);
   round = null;
   app.innerHTML = `<section aria-labelledby="stats-title">
-    <button id="back" class="text-button" type="button">← Back to choices</button>
-    <h1 id="stats-title" tabindex="-1">Your practice so far.</h1>
     <section aria-labelledby="overall-title"><h2 id="overall-title">All practice</h2>${scoreMarkup(store.data.overall)}</section>
     ${statisticsGroup('By table', Object.entries(store.data.tables).map(([key, counts]) => [`Table ${key}`, counts]))}
     ${statisticsGroup('By practice choice', Object.entries(store.data.modes).map(([key, counts]) => [MODES[key].label, counts]))}
@@ -194,12 +200,11 @@ function statisticsView() {
     <p>These statistics belong to this browser and device. They are not synced and may be lost if browser data is cleared.</p>
     <button id="reset" type="button">Reset statistics</button></div>
   </section>`;
-  app.querySelector('#back').addEventListener('click', backToChoices);
   app.querySelector('#reset').addEventListener('click', () => {
     resetDialog.returnValue = '';
     resetDialog.showModal();
   });
-  app.querySelector('h1').focus();
+  document.querySelector('#stats-title').focus();
 }
 
 function statisticsGroup(title, entries) {
