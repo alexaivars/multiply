@@ -1,11 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { choosePractice } from './practice.js';
 
 for (const [label, count] of [['Mixed 1–9', 9], ['Mixed all', 81]]) {
   test(`${label} completes a shuffled deck with no duplicate or revealed questions`, async ({ page }) => {
     await page.addInitScript(() => { Math.random = () => 0; });
     await page.goto('/');
-    await page.getByRole('button', { name: new RegExp(label) }).click();
-    await page.getByRole('button', { name: 'Start practice' }).click();
+    await choosePractice(page, label);
     const seen = new Set();
     for (let i = 1; i <= count; i++) {
       await expect(page.locator('#position')).toHaveText(`Question ${i} of ${count}`);
@@ -33,7 +33,7 @@ for (const [label, count] of [['Mixed 1–9', 9], ['Mixed all', 81]]) {
 }
 test('series answers are checked once and advance only with Next', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Start practice' }).click();
+  await choosePractice(page);
   const answer = page.getByRole('textbox', { name: 'Your answer' });
   await expect(answer).toBeFocused();
   await expect(page.locator('.score-strip dd')).toHaveText(['0', '0', 'No answers yet']);
@@ -72,13 +72,19 @@ test('choose a mode and table, or all tables without a selector', async ({ page 
   await page.goto('/');
   await expect(page).toHaveTitle('Multiply — Times table practice');
   await expect(page.getByRole('group', { name: 'Practice choices' }).getByRole('button')).toHaveCount(3);
-  await page.getByRole('button', { name: 'Table 7', exact: true }).click();
-  await expect(page.locator('#selection')).toContainText('Table 7');
+  await expect(page.locator('[data-table], #start')).toHaveCount(0);
+  await page.getByRole('button', { name: /Series 1–9/ }).click();
+  await expect(page.getByRole('heading', { name: 'Which table?' })).toBeFocused();
+  await expect(page.getByRole('group', { name: 'Choose a table' }).getByRole('button')).toHaveCount(9);
+  await expect(page.locator('[data-mode], #start')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Back to choices' }).click();
   await page.getByRole('button', { name: /Mixed 1–9/ }).click();
-  await expect(page.locator('#selection')).toContainText('9 questions · shuffled');
+  await expect(page.locator('main')).toContainText('Mixed 1–9 · 9 questions · shuffled');
+  await page.getByRole('button', { name: 'Table 7', exact: true }).click();
+  await expect(page.locator('#equation')).toHaveText(/^7 × [1-9] = \?$/);
+  await page.getByRole('button', { name: 'Back to choices' }).click();
   await page.getByRole('button', { name: /Mixed all/ }).click();
-  await expect(page.locator('#table-picker')).toBeHidden();
-  await page.getByRole('button', { name: 'Start practice' }).click();
+  await expect(page.locator('[data-table], #start')).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Mixed all' })).toBeVisible();
   await page.getByRole('button', { name: 'Back to choices' }).click();
   await expect(page.getByRole('heading', { name: /Get to know/ })).toBeVisible();
@@ -92,5 +98,11 @@ for (const [width, height] of [[1280, 900], [390, 844], [844, 390], [768, 1024],
       const rect = node.getBoundingClientRect(); return [rect.width, rect.height];
     }));
     for (const [w, h] of sizes) { expect(w).toBeGreaterThanOrEqual(48); expect(h).toBeGreaterThanOrEqual(48); }
+    await page.getByRole('button', { name: /Series 1–9/ }).click();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const tableSizes = await page.locator('[data-table]').evaluateAll(nodes => nodes.map(node => {
+      const rect = node.getBoundingClientRect(); return [rect.width, rect.height];
+    }));
+    for (const [w, h] of tableSizes) { expect(w).toBeGreaterThanOrEqual(48); expect(h).toBeGreaterThanOrEqual(48); }
   });
 }

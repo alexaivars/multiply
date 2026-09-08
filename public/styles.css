@@ -39,19 +39,15 @@ main { padding-block: 52px 16px; min-height: 70vh; }
 .intro p { color: var(--muted); max-width: 350px; padding-bottom: 5px; }
 .choices { border-top: 1px solid var(--line); }
 .choice { border: 0; border-bottom: 1px solid var(--line); border-radius: 0; width: 100%; padding: 22px 24px; display: flex; align-items: center; gap: 24px; text-align: left; }
-.choice[aria-pressed="true"] { background: var(--wash); box-shadow: inset 4px 0 var(--green); }
 .choice-number { font-size: 1rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .choice strong { display: block; font-size: 1.28rem; font-weight: 650; }
 .choice-description { display: block; color: var(--muted); margin-top: 3px; }
 .choice-indicator { margin-left: auto; color: var(--green); font-size: 1.4rem; }
-.practice-setup { margin-top: 32px; }
 fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 legend { font-weight: 600; margin-bottom: 14px; }
-.tables { display: grid; grid-template-columns: repeat(9, minmax(48px, 1fr)); gap: 10px; }
-.tables button { background: var(--white); font-size: 1.2rem; padding: 12px 0; }
-.tables button[aria-pressed="true"] { background: var(--green); border-color: var(--green); color: var(--white); }
-.start-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 28px; }
-.start-row p { color: var(--muted); margin: 0; }
+.tables { display: grid; grid-template-columns: repeat(3, minmax(48px, 1fr)); gap: 16px; margin-top: 28px; }
+.tables button { background: var(--white); font-size: 1.5rem; min-height: 80px; padding: 16px; }
+.tables button:hover { background: var(--wash); border-color: var(--green); }
 .primary { background: var(--green); border-color: var(--green); color: var(--white); min-height: 58px; font-weight: 600; }
 .primary:hover { background: #153e32; }
 .primary span { padding-left: 24px; }
@@ -104,8 +100,6 @@ dialog .answer-actions { grid-template-columns: 1fr; }
   .intro p { padding: 0; }
   .choice { padding: 20px 16px; gap: 16px; }
   .choice-number { display: none; }
-  .tables { grid-template-columns: repeat(5, minmax(48px, 1fr)); }
-  .start-row { align-items: stretch; flex-direction: column; gap: 16px; }
   .site-footer { margin-top: 24px; }
   .question-card { padding: 24px 20px; }
   .practice-heading { flex-wrap: wrap; gap: 0 16px; }
@@ -120,5 +114,4 @@ dialog .answer-actions { grid-template-columns: 1fr; }
   .score-strip { grid-template-columns: 1fr 1fr; }
   .score-strip > div:last-child { grid-column: 1 / -1; }
 }
-@media (max-width: 340px) { .tables { grid-template-columns: repeat(4, minmax(48px, 1fr)); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; } }

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { choosePractice } from './practice.js';
 
 test('keyboard-only practice, visible focus, and live feedback work', async ({ page, browserName }) => {
   const tabKey = browserName === 'webkit' ? 'Alt+Tab' : 'Tab';
@@ -11,9 +12,11 @@ test('keyboard-only practice, visible focus, and live feedback work', async ({ p
   await expect(page.getByRole('link', { name: 'Multiply home' })).toBeFocused();
   const outline = await page.locator(':focus').evaluate(node => getComputedStyle(node).outlineStyle);
   expect(outline).toBe('solid');
-  for (let i = 0; i < 20 && !await page.locator('#start').evaluate(node => node === document.activeElement); i++) await page.keyboard.press(tabKey);
-  await expect(page.locator('#start')).toBeFocused();
-  await page.keyboard.press('Enter');
+  for (const selector of ['[data-mode="series"]', '[data-table="4"]']) {
+    for (let i = 0; i < 20 && !await page.locator(selector).evaluate(node => node === document.activeElement); i++) await page.keyboard.press(tabKey);
+    await expect(page.locator(selector)).toBeFocused();
+    await page.keyboard.press('Enter');
+  }
   await expect(page.getByRole('textbox')).toBeFocused();
   await page.keyboard.type('4');
   await page.keyboard.press('Enter');
@@ -32,7 +35,7 @@ for (const [width, height] of [[390, 844], [844, 390], [768, 1024], [1024, 768],
     await page.setViewportSize({ width, height });
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/');
-    await page.getByRole('button', { name: 'Start practice' }).click();
+    await choosePractice(page);
     const fits = async () => {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       const sizes = await page.locator('button:visible, input:visible').evaluateAll(nodes => nodes.map(node => {
@@ -62,7 +65,7 @@ test('text resizing keeps choices and practice controls usable', async ({ page }
   await page.goto('/');
   await page.addStyleTag({ content: ':root { font-size: 36px; }' });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.getByRole('button', { name: 'Start practice' }).click();
+  await choosePractice(page);
   await page.getByRole('textbox').fill('4');
   await page.getByRole('button', { name: 'Check answer' }).click();
   await page.getByRole('button', { name: 'Next' }).click();
