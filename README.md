@@ -26,6 +26,18 @@ python3 -m http.server 8000 --bind 127.0.0.1 --directory public
 
 Open http://127.0.0.1:8000. Stop with Ctrl+C. Serve **only `public/`**, never the project root.
 
+## Host on GitHub Pages
+
+The included `.github/workflows/pages.yml` publishes only `public/`, without a build step.
+
+1. In the repository's **Settings → Pages → Build and deployment**, select **GitHub Actions** as the source.
+2. Push the workflow and app to `main`. In **Actions → Deploy GitHub Pages**, wait for the deployment to finish. You can also use **Run workflow** on `main` after enabling Pages.
+3. Open https://alexaivars.github.io/multiply/ (unless you configure a custom domain). Use this HTTPS address for the Home Screen installation steps below.
+
+Later pushes that change `public/` automatically redeploy. Bump the cache version in `public/sw.js` with app asset changes. Relative asset paths, the manifest, and service-worker scope support the `/multiply/` subdirectory. Existing localhost statistics do not transfer to the hosted address.
+
+GitHub Pages requires a public repository on GitHub Free, or a supported paid plan for a private repository. The published app is normally public. See [GitHub's Pages workflow documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages).
+
 ## Repeatable checks
 
 Use Node.js 22 or newer and Python 3. Test tooling stays outside `public/`.
