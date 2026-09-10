@@ -15,11 +15,13 @@ test('only the available question action appears, with numeric entry and no disa
   await expect(page.locator('#feedback')).toContainText('Type a whole number');
   await expect(page.getByRole('button', { name: 'Check answer' })).toBeEnabled();
   await input.fill('4');
+  const inputBox = await input.boundingBox();
   await page.getByRole('button', { name: 'Check answer' }).click();
   await expect(page.getByRole('button', { name: 'Check answer' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Next' })).toBeVisible();
   await expect(page.locator('#answer-form button')).toHaveCount(1);
-  await expect(input).toHaveAttribute('readonly', '');
+  await expect(input).toHaveCount(0);
+  expect(await page.getByRole('button', { name: 'Next' }).boundingBox()).toEqual(inputBox);
   await page.getByRole('button', { name: 'Next' }).click();
   await expect(page.getByRole('button', { name: 'Check answer' })).toBeVisible();
   await expect(input).toBeEditable();
@@ -29,7 +31,7 @@ test('only the available question action appears, with numeric entry and no disa
 
 test('double clicks cannot trigger an action that replaced the clicked control', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: /Series 1–9/ }).dblclick();
+  await page.getByRole('button', { name: /One table, in order/ }).dblclick();
   await expect(page.getByRole('heading', { name: 'Which table?' })).toBeVisible();
   await page.getByRole('button', { name: 'Table 4', exact: true }).click();
   await page.getByRole('spinbutton').fill('4');
@@ -65,7 +67,7 @@ test.describe('touch actions', () => {
   test.use({ hasTouch: true, viewport: { width: 390, height: 844 } });
   test('a double tap keeps feedback visible, and a later tap advances once', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: /Series 1–9/ }).tap();
+    await page.getByRole('button', { name: /One table, in order/ }).tap();
     // Read the new choice screen before a separate intentional selection.
     // These controls can occupy the same coordinates in the compact layout.
     await page.waitForTimeout(450);

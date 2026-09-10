@@ -1,7 +1,7 @@
 export const MODES = {
-  series: { label: 'Series 1–9', description: 'One table, in order.', detail: '9 questions · in order' },
-  mixed: { label: 'Mixed 1–9', description: 'One table, shuffled.', detail: '9 questions · shuffled' },
-  all: { label: 'Mixed all', description: 'All nine tables, shuffled.', detail: '81 questions · stop whenever you like' },
+  series: { label: 'One table, in order', detail: '9 questions' },
+  mixed: { label: 'One table, shuffled', detail: '9 questions' },
+  all: { label: 'All nine tables, shuffled', detail: '81 questions · stop whenever you like' },
 };
 
 export function validChoice(mode, table) {
@@ -15,7 +15,7 @@ export function seriesDeck(table) {
 
 // Fisher–Yates; inject a random source for repeatable deck checks.
 export function shuffle(deck, random = Math.random) {
-  const shuffled = deck.map(pair => [...pair]);
+  const shuffled = deck.map(item => Array.isArray(item) ? [...item] : item);
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];

@@ -9,9 +9,10 @@ test('installation help stays at the start, and scores appear only after the rou
   await page.getByText('Add to iPhone or iPad', { exact: true }).click();
   await expect(help).toHaveAttribute('open');
   await expect(help.locator('ol')).toBeVisible();
-  await page.getByRole('button', { name: /Series 1–9/ }).click();
+  await page.getByRole('button', { name: /One table, in order/ }).click();
   await expect(help).toBeHidden();
   await page.getByRole('button', { name: 'Table 4', exact: true }).click();
+  await expect(page.locator('.screen-heading p')).toHaveCount(0);
   for (let i = 1; i <= 9; i++) {
     await expect(help).toBeHidden();
     await expect(page.getByRole('button', { name: 'Statistics', exact: true })).toHaveCount(0);
@@ -24,6 +25,7 @@ test('installation help stays at the start, and scores appear only after the rou
     await page.getByRole('button', { name: 'Next' }).click();
   }
   await expect(page.getByRole('heading', { name: 'Round complete' })).toBeVisible();
+  await expect(page.locator('.site-header')).toContainText('Table 4');
   await expect(page.locator('.score-strip dd')).toHaveText(['9', '9', '100%']);
   await expect(help).toBeHidden();
   await page.getByRole('button', { name: 'Statistics', exact: true }).click();

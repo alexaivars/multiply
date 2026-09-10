@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { choosePractice } from './practice.js';
 import { STORAGE_KEY, emptyStatistics } from '../public/statistics.js';
 
-async function answerFirst(page, answer = '4', mode = 'Series 1–9') {
+async function answerFirst(page, answer = '4', mode = 'One table, in order') {
   await choosePractice(page, mode);
   await page.getByRole('spinbutton', { name: 'Your answer' }).fill(answer);
   await page.getByRole('button', { name: 'Check answer' }).click();
@@ -12,14 +12,14 @@ const overall = page => page.getByRole('region', { name: 'All practice', exact: 
 test('partial rounds save once, refresh preserves totals, and switching modes starts fresh', async ({ page }) => {
   await page.goto('/');
   await answerFirst(page);
-  await page.getByRole('spinbutton').press('Enter');
+  await page.locator('#answer-form').evaluate(form => form.requestSubmit());
   await page.reload();
   await expect(page.getByRole('heading', { name: /Get to know/ })).toBeVisible();
   await page.getByRole('button', { name: 'Statistics', exact: true }).click();
   await expect(overall(page)).toHaveText(['1', '1', '100%']);
   await expect(page.getByRole('listitem').filter({ has: page.getByRole('heading', { name: 'Table 4', exact: true }) }).locator('dd')).toHaveText(['1', '1', '100%']);
   await page.getByRole('button', { name: 'Back to choices' }).click();
-  await answerFirst(page, '0', 'Mixed all');
+  await answerFirst(page, '0', 'All nine tables, shuffled');
   await expect(page.locator('.score-strip')).toHaveCount(0);
   const firstFactor = Number((await page.locator('#equation').textContent())[0]);
   await page.getByRole('button', { name: 'Next' }).click();

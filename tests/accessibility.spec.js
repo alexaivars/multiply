@@ -11,19 +11,25 @@ test('keyboard-only practice, visible focus, and live feedback work', async ({ p
   await page.keyboard.press(tabKey);
   await expect(page.getByRole('link', { name: 'Multiply home' })).toBeFocused();
   const outline = await page.locator(':focus').evaluate(node => getComputedStyle(node).outlineStyle);
-  expect(outline).toBe('solid');
+  expect(outline).toBe('none');
+  const highlight = await page.locator(':focus').evaluate(node => getComputedStyle(node).backgroundColor);
+  expect(highlight).not.toBe('rgba(0, 0, 0, 0)');
+  expect(highlight).not.toBe(await page.locator('body').evaluate(node => getComputedStyle(node).backgroundColor));
   for (const selector of ['[data-mode="series"]', '[data-table="4"]']) {
     for (let i = 0; i < 20 && !await page.locator(selector).evaluate(node => node === document.activeElement); i++) await page.keyboard.press(tabKey);
     await expect(page.locator(selector)).toBeFocused();
+    expect(await page.locator(selector).evaluate(node => getComputedStyle(node).backgroundColor)).toBe(highlight);
     await page.keyboard.press('Enter');
   }
   await expect(page.getByRole('spinbutton')).toBeFocused();
+  expect(await page.getByRole('spinbutton').evaluate(node => getComputedStyle(node).backgroundColor)).toBe(highlight);
   await page.keyboard.type('4');
   await page.keyboard.press('Enter');
   await expect(page.locator('#feedback')).toContainText('Correct!');
   await expect(page.locator('#feedback')).toHaveAttribute('aria-live', 'polite');
-  await page.keyboard.press(tabKey);
   await expect(page.getByRole('button', { name: 'Next' })).toBeFocused();
+  await page.getByRole('button', { name: 'Next' }).hover();
+  expect(await page.getByRole('button', { name: 'Next' }).evaluate(node => getComputedStyle(node).backgroundColor)).toBe(highlight);
   await page.keyboard.press('Enter');
   await expect(page.getByRole('spinbutton')).toBeFocused();
   await expect(page.locator('#equation')).toHaveText('4 × 2 = ?');

@@ -1,8 +1,8 @@
 // Bump this version whenever public assets change. Updates activate after all
 // existing app windows close, keeping an in-progress round on one app version.
-const CACHE = 'multiply-static-v6';
+const CACHE = 'multiply-static-v20-blue-scale';
 const ASSETS = [
-  './', './index.html', './styles.css', './app.js', './core.js', './statistics.js',
+  './', './index.html', './styles.css', './app.js', './core.js', './statistics.js', './answer-formats.js',
   './pwa.js', './favicon.svg', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png',
 ];

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { choosePractice } from './practice.js';
 
-for (const [label, count] of [['Mixed 1–9', 9], ['Mixed all', 81]]) {
+for (const [label, count] of [['One table, shuffled', 9], ['All nine tables, shuffled', 81]]) {
   test(`${label} completes a shuffled deck with no duplicate or revealed questions`, async ({ page }) => {
     await page.addInitScript(() => { Math.random = () => 0; });
     await page.goto('/');
@@ -47,11 +47,13 @@ test('series answers are checked once and advance only with Next', async ({ page
     await expect(page.getByRole('button', { name: 'Check answer' })).toBeEnabled();
   }
   await answer.fill('5');
-  await answer.press('Enter');
+  await page.keyboard.down('Enter');
   await expect(page.getByRole('status')).toContainText('The answer is 4 × 1 = 4.');
-  await answer.press('Enter');
+  await page.keyboard.down('Enter');
+  await page.keyboard.up('Enter');
   await expect(page.locator('#position')).toHaveText('Question 1 of 9');
-  await expect(answer).toHaveAttribute('readonly', '');
+  await expect(answer).toHaveCount(0);
+  await expect(page.locator('#equation')).toHaveText('4 × 1 = 5');
   await page.getByRole('button', { name: 'Next' }).dblclick();
   await expect(page.locator('#position')).toHaveText('Question 2 of 9');
   await expect(answer).toBeFocused();
@@ -74,20 +76,24 @@ test('choose a mode and table, or all tables without a selector', async ({ page 
   await page.goto('/');
   await expect(page).toHaveTitle('Multiply — Times table practice');
   await expect(page.getByRole('group', { name: 'Practice choices' }).getByRole('button')).toHaveCount(3);
+  await expect(page.getByRole('group', { name: 'Practice choices' }).getByRole('button')).toHaveText([
+    'One table, in order', 'One table, shuffled', 'All nine tables, shuffled',
+  ]);
+  await expect(page.locator('.choice-number, .choice-description, .choice-indicator, .choices [aria-pressed]')).toHaveCount(0);
   await expect(page.locator('[data-table], #start')).toHaveCount(0);
-  await page.getByRole('button', { name: /Series 1–9/ }).click();
+  await page.getByRole('button', { name: /One table, in order/ }).click();
   await expect(page.getByRole('heading', { name: 'Which table?' })).toBeFocused();
   await expect(page.getByRole('group', { name: 'Choose a table' }).getByRole('button')).toHaveCount(9);
   await expect(page.locator('[data-mode], #start')).toHaveCount(0);
   await page.getByRole('button', { name: 'Back to choices' }).click();
-  await page.getByRole('button', { name: /Mixed 1–9/ }).click();
-  await expect(page.locator('.site-header')).toContainText('Mixed 1–9 · 9 questions · shuffled');
+  await page.getByRole('button', { name: /One table, shuffled/ }).click();
+  await expect(page.locator('.site-header')).toContainText('One table, shuffled · 9 questions');
   await page.getByRole('button', { name: 'Table 7', exact: true }).click();
   await expect(page.locator('#equation')).toHaveText(/^7 × [1-9] = \?$/);
   await page.getByRole('button', { name: 'Back to choices' }).click();
-  await page.getByRole('button', { name: /Mixed all/ }).click();
+  await page.getByRole('button', { name: /All nine tables, shuffled/ }).click();
   await expect(page.locator('[data-table], #start')).toHaveCount(0);
-  await expect(page.getByRole('heading', { name: 'Mixed all' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'All nine tables, shuffled' })).toBeVisible();
   await page.getByRole('button', { name: 'Back to choices' }).click();
   await expect(page.getByRole('heading', { name: /Get to know/ })).toBeVisible();
 });
@@ -100,7 +106,7 @@ for (const [width, height] of [[1280, 900], [390, 844], [844, 390], [768, 1024],
       const rect = node.getBoundingClientRect(); return [rect.width, rect.height];
     }));
     for (const [w, h] of sizes) { expect(w).toBeGreaterThanOrEqual(48); expect(h).toBeGreaterThanOrEqual(48); }
-    await page.getByRole('button', { name: /Series 1–9/ }).click();
+    await page.getByRole('button', { name: /One table, in order/ }).click();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     const tableSizes = await page.locator('[data-table]').evaluateAll(nodes => nodes.map(node => {
       const rect = node.getBoundingClientRect(); return [rect.width, rect.height];

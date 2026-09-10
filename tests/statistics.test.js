@@ -26,7 +26,7 @@ test('missing data starts empty and checked answers persist overall, table and m
 test('malformed, unsupported and invalid saves are rejected gracefully', () => {
   const invalid = ['{', 'null', '[]', '{}'];
   for (const mutate of [
-    data => { data.version = 2; },
+    data => { data.version = 3; },
     data => { data.overall.answered = -1; },
     data => { data.tables[1].correct = 1; },
     data => { data.modes.series.answered = 0.5; },
@@ -78,4 +78,46 @@ test('reset removes only this app key and changes no results when removal fails'
   assert.equal(storage.getItem(STORAGE_KEY), null);
   assert.equal(storage.getItem('unrelated'), 'keep');
   assert.deepEqual(store.data, emptyStatistics());
+});
+
+test('every scored answer is attributed to its answer format without changing aggregate counts', () => {
+  const storage = memoryStorage();
+  const store = createStatisticsStore(() => storage);
+  store.record('series', 4, true, 'typed');
+  store.record('series', 4, false, 'choice');
+  store.record('all', 7, true, 'choice');
+  assert.deepEqual(store.data.overall, { answered: 3, correct: 2 });
+  assert.deepEqual(store.data.formats.typed.overall, { answered: 1, correct: 1 });
+  assert.deepEqual(store.data.formats.choice.overall, { answered: 2, correct: 1 });
+  assert.deepEqual(store.data.formats.choice.tables[7], { answered: 1, correct: 1 });
+  assert.deepEqual(store.data.formats.choice.modes.series, { answered: 1, correct: 0 });
+  assert.ok(validStatistics(store.data));
+  assert.deepEqual(createStatisticsStore(() => storage).data, store.data);
+  assert.throws(() => store.record('series', 4, true, 'invalid'), TypeError);
+  assert.equal(store.data.overall.answered, 3);
+  store.data.formats.choice.tables[7].correct = 0;
+  assert.equal(validStatistics(store.data), false);
+});
+
+test('legacy typed statistics migrate without losing counts or writing before a checked answer', () => {
+  const old = emptyStatistics();
+  delete old.formats;
+  old.version = 1;
+  for (const counts of [old.overall, old.tables[4], old.modes.series]) Object.assign(counts, { answered: 3, correct: 2 });
+  const encoded = JSON.stringify(old);
+  const storage = memoryStorage({ [STORAGE_KEY]: encoded });
+  const store = createStatisticsStore(() => storage);
+  assert.equal(store.notice, '');
+  assert.equal(store.data.version, 2);
+  assert.deepEqual(store.data.overall, old.overall);
+  assert.deepEqual(store.data.formats.typed.tables[4], old.tables[4]);
+  assert.deepEqual(store.data.formats.choice.overall, { answered: 0, correct: 0 });
+  assert.equal(storage.getItem(STORAGE_KEY), encoded);
+  store.record('all', 8, true, 'choice');
+  assert.deepEqual(store.data.formats.typed.overall, { answered: 3, correct: 2 });
+  assert.deepEqual(store.data.overall, { answered: 4, correct: 3 });
+  assert.ok(validStatistics(JSON.parse(storage.getItem(STORAGE_KEY))));
+  store.reset();
+  assert.equal(storage.getItem(STORAGE_KEY), null);
+  assert.deepEqual(createStatisticsStore(() => storage).data, emptyStatistics());
 });

@@ -26,17 +26,24 @@ test('offline launch, all modes, refresh and reset work with only local requests
     if (browserName === 'chromium') await context.setOffline(true);
     await page.reload();
     await expect(page.getByRole('heading', { name: /Get to know/ })).toBeVisible();
-    for (const label of ['Series 1–9', 'Mixed 1–9', 'Mixed all']) {
-      await choosePractice(page, label);
-      const [a, b] = (await page.locator('#equation').textContent()).match(/\d/g).map(Number);
-      await page.getByRole('spinbutton', { name: 'Your answer' }).fill(String(a * b));
-      await page.getByRole('button', { name: 'Check answer' }).click();
-      await expect(page.locator('#feedback')).toContainText('Correct!');
-      await page.getByRole('button', { name: 'Back to choices' }).click();
+    for (const format of ['Type answer', 'Choose answer']) {
+      await page.getByRole('button', { name: format, exact: true }).click();
+      for (const label of ['One table, in order', 'One table, shuffled', 'All nine tables, shuffled']) {
+        await choosePractice(page, label);
+        const [a, b] = (await page.locator('#equation').textContent()).match(/\d/g).map(Number);
+        if (format === 'Type answer') {
+          await page.getByRole('spinbutton', { name: 'Your answer' }).fill(String(a * b));
+          await page.getByRole('button', { name: 'Check answer' }).click();
+        } else {
+          await page.locator(`[data-answer="${a * b}"]`).click();
+        }
+        await expect(page.locator('#feedback')).toContainText('Correct!');
+        await page.getByRole('button', { name: 'Back to choices' }).click();
+      }
     }
     await page.reload();
     await page.getByRole('button', { name: 'Statistics', exact: true }).click();
-    await expect(page.getByRole('region', { name: 'All practice', exact: true }).locator('dd')).toHaveText(['3', '3', '100%']);
+    await expect(page.getByRole('region', { name: 'All practice', exact: true }).locator('dd')).toHaveText(['6', '6', '100%']);
     await page.getByRole('button', { name: 'Reset statistics', exact: true }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Reset statistics', exact: true }).click();
     await expect(page.locator('#storage-notice')).toContainText('Statistics reset.');

@@ -13,7 +13,7 @@ def chunk(kind, data):
 
 def icon(size):
     rows = bytearray()
-    background, ink = (35, 79, 67), (246, 245, 239)
+    background, ink = (40, 115, 185), (255, 255, 255)
     for y in range(size):
         rows.append(0)
         for x in range(size):

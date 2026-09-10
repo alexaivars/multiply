@@ -1,16 +1,26 @@
 import { MODES, validChoice } from './core.js';
+import { ANSWER_FORMATS } from './answer-formats.js';
 
+// Keep the original key so migration and reset use one atomic record. The
+// payload's version determines its schema; no second legacy key can reappear.
 export const STORAGE_KEY = 'multiply.statistics.v1';
 const count = () => ({ answered: 0, correct: 0 });
 const tableKeys = Array.from({ length: 9 }, (_, i) => String(i + 1));
 const modeKeys = Object.keys(MODES);
 
-export function emptyStatistics() {
+function emptyGroups() {
   return {
-    version: 1,
     overall: count(),
     tables: Object.fromEntries(tableKeys.map(key => [key, count()])),
     modes: Object.fromEntries(modeKeys.map(key => [key, count()])),
+  };
+}
+
+export function emptyStatistics() {
+  return {
+    version: 2,
+    ...emptyGroups(),
+    formats: Object.fromEntries(Object.keys(ANSWER_FORMATS).map(key => [key, emptyGroups()])),
   };
 }
 
@@ -25,8 +35,8 @@ function validCounts(value) {
     && value.answered >= 0 && value.correct >= 0 && value.correct <= value.answered;
 }
 
-export function validStatistics(value) {
-  if (!exactKeys(value, ['version', 'overall', 'tables', 'modes']) || value.version !== 1 || !validCounts(value.overall)) return false;
+function validGroups(value) {
+  if (!validCounts(value.overall)) return false;
   for (const [group, keys] of [[value.tables, tableKeys], [value.modes, modeKeys]]) {
     if (!exactKeys(group, keys) || !keys.every(key => validCounts(group[key]))) return false;
     for (const field of ['answered', 'correct']) {
@@ -34,6 +44,30 @@ export function validStatistics(value) {
     }
   }
   return true;
+}
+
+export function validStatistics(value) {
+  if (!exactKeys(value, ['version', 'overall', 'tables', 'modes', 'formats']) || value.version !== 2 || !validGroups(value)) return false;
+  const formats = Object.keys(ANSWER_FORMATS);
+  if (!exactKeys(value.formats, formats)) return false;
+  for (const format of formats) {
+    const group = value.formats[format];
+    if (!exactKeys(group, ['overall', 'tables', 'modes']) || !validGroups(group)) return false;
+  }
+  const groups = data => [data.overall, ...tableKeys.map(key => data.tables[key]), ...modeKeys.map(key => data.modes[key])];
+  return groups(value).every((counts, index) => ['answered', 'correct'].every(field =>
+    formats.reduce((sum, format) => sum + groups(value.formats[format])[index][field], 0) === counts[field]));
+}
+
+function migrateStatistics(value) {
+  if (!exactKeys(value, ['version', 'overall', 'tables', 'modes']) || value.version !== 1 || !validGroups(value)) return value;
+  // Before answer formats were introduced, all saved answers were typed.
+  const next = emptyStatistics();
+  for (const key of ['overall', 'tables', 'modes']) {
+    next[key] = structuredClone(value[key]);
+    next.formats.typed[key] = structuredClone(value[key]);
+  }
+  return next;
 }
 
 // Storage access is injectable so read, write and reset failures are testable.
@@ -46,7 +80,7 @@ export function createStatisticsStore(getStorage = () => window.localStorage) {
     const saved = storage.getItem(STORAGE_KEY);
     if (saved !== null) {
       try {
-        const parsed = JSON.parse(saved);
+        const parsed = migrateStatistics(JSON.parse(saved));
         if (!validStatistics(parsed)) throw new Error('Invalid statistics');
         statistics = parsed;
       } catch {
@@ -61,15 +95,17 @@ export function createStatisticsStore(getStorage = () => window.localStorage) {
   return {
     get data() { return statistics; },
     get notice() { return notice; },
-    record(mode, table, correct) {
-      if (!validChoice(mode, table) || !tableKeys.includes(String(table)) || typeof correct !== 'boolean') throw new TypeError('Invalid result');
+    record(mode, table, correct, format = 'typed') {
+      if (!validChoice(mode, table) || !tableKeys.includes(String(table)) || typeof correct !== 'boolean' || !Object.hasOwn(ANSWER_FORMATS, format)) throw new TypeError('Invalid result');
       if (statistics.overall.answered === Number.MAX_SAFE_INTEGER) {
         notice = 'Saved statistics are full. New progress will not be saved until statistics are reset.';
         return;
       }
-      for (const counts of [statistics.overall, statistics.tables[table], statistics.modes[mode]]) {
-        counts.answered++;
-        if (correct) counts.correct++;
+      for (const group of [statistics, statistics.formats[format]]) {
+        for (const counts of [group.overall, group.tables[table], group.modes[mode]]) {
+          counts.answered++;
+          if (correct) counts.correct++;
+        }
       }
       try {
         if (!storage) throw new Error('Storage unavailable');
