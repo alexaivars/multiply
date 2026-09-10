@@ -47,9 +47,10 @@ for (const [mode, count] of [['One table, in order', 9], ['One table, shuffled',
       await expect(page.getByRole('button', { name: 'Next', exact: true })).toHaveCount(0);
       const selected = index === 0 ? values.find(value => value !== a * b) : a * b;
       await page.locator(`[data-answer="${selected}"]`).click();
-      await expect(page.locator('#feedback')).toContainText(index === 0 ? `The answer is ${a} × ${b} = ${a * b}.` : 'Correct!');
+      await expect(page.locator('#feedback')).toContainText(index === 0 ? `Correct answer is ${a} × ${b} = ${a * b}.` : 'Correct!');
       await expect(page.locator('[data-answer], button:disabled, .score-strip')).toHaveCount(0);
-      await expect(page.locator('[data-selected]')).toContainText('Chosen');
+      await expect(page.locator('[data-selected] .visually-hidden')).toHaveText(index === 0 ? 'Your answer, incorrect.' : 'Your answer, correct.');
+      await expect(page.locator('[data-selected] > span').first()).toHaveText(String(selected));
       await expect(page.getByRole('button', { name: 'Next' })).toBeFocused();
       await page.getByRole('button', { name: 'Next' }).click();
     }

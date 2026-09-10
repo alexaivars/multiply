@@ -144,7 +144,7 @@ function question() {
       </div>
       <form id="answer-form" novalidate>
         ${multipleChoice ? `<fieldset class="answer-options" aria-label="Answer options" aria-describedby="equation feedback">
-          <div class="answer-grid">${options.map(value => `<button class="answer-option" type="button" data-answer="${value}"><span>${value}</span><span class="option-note" aria-hidden="true">&nbsp;</span></button>`).join('')}</div>
+          <div class="answer-grid">${options.map(value => `<button class="answer-option" type="button" data-answer="${value}"><span>${value}</span></button>`).join('')}</div>
         </fieldset>` : `<div class="typed-answer-slot"><input id="answer" name="answer" aria-label="Your answer" type="number" inputmode="numeric" min="0" step="1" autocomplete="off" enterkeyhint="done" aria-describedby="equation feedback"></div>`}
         <div class="answer-actions ${multipleChoice ? 'choice-actions' : ''}"><button id="question-action" class="primary" type="${multipleChoice ? 'button' : 'submit'}" ${multipleChoice ? 'hidden' : ''}>${multipleChoice ? 'Next' : 'Check answer'}</button></div>
       </form>
@@ -161,7 +161,8 @@ function question() {
     app.querySelector('.answer-grid').innerHTML = options.map(value => {
       const selected = value === Number(button.dataset.answer);
       const correct = value === a * b;
-      return `<div class="answer-option" ${selected ? 'data-selected="true"' : ''} ${selected || correct ? `data-result="${correct ? 'correct' : 'incorrect'}"` : ''}><span>${value}</span><span class="option-note">${selected ? 'Chosen' : correct ? 'Correct' : '&nbsp;'}</span></div>`;
+      const description = selected ? `Your answer, ${correct ? 'correct' : 'incorrect'}.` : correct ? 'Correct answer.' : '';
+      return `<div class="answer-option" ${selected ? 'data-selected="true"' : ''} ${selected || correct ? `data-result="${correct ? 'correct' : 'incorrect'}"` : ''}><span>${value}</span>${description ? `<span class="visually-hidden"> ${description}</span>` : ''}</div>`;
     }).join('');
     app.querySelector('#question-action').focus({ preventScroll: true });
   }));
@@ -208,7 +209,7 @@ function scoreAnswer(value) {
   action.type = 'button';
   action.hidden = false;
   action.innerHTML = 'Next <span aria-hidden="true">→</span>';
-  feedback.textContent = result.correct ? `Correct! ${result.equation}.` : `The answer is ${result.equation}.`;
+  feedback.textContent = result.correct ? `Correct! ${result.equation}.` : `Correct answer is ${result.equation}.`;
   const outcome = result.correct ? 'correct' : 'incorrect';
   app.querySelector('#equation-answer').textContent = String(Number(value));
   app.querySelector('.question-card').dataset.result = outcome;

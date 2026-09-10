@@ -36,7 +36,7 @@ for (const format of ['typed', 'choice']) {
           await expect(page.locator('[data-answer]')).toHaveCount(0);
         }
         await expect(page.locator('#equation')).toHaveText(`${a} × ${b} = ${submitted}`);
-        await expect(page.locator('#feedback')).toContainText(correct ? 'Correct!' : `The answer is ${a} × ${b} = ${a * b}.`);
+        await expect(page.locator('#feedback')).toContainText(correct ? 'Correct!' : `Correct answer is ${a} × ${b} = ${a * b}.`);
         await expect(page.getByRole('button', { name: 'Next' })).toBeFocused();
         const number = await page.locator('#equation-answer').evaluate(node => {
           const s = getComputedStyle(node); return { color: s.color, weight: Number(s.fontWeight) };

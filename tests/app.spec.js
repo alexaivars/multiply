@@ -48,7 +48,7 @@ test('series answers are checked once and advance only with Next', async ({ page
   }
   await answer.fill('5');
   await page.keyboard.down('Enter');
-  await expect(page.getByRole('status')).toContainText('The answer is 4 × 1 = 4.');
+  await expect(page.getByRole('status')).toContainText('Correct answer is 4 × 1 = 4.');
   await page.keyboard.down('Enter');
   await page.keyboard.up('Enter');
   await expect(page.locator('#position')).toHaveText('Question 1 of 9');

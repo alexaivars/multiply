@@ -96,7 +96,7 @@ input { display: block; width: 100%; min-width: 0; min-height: var(--control-hei
 .feedback[data-result] { color: var(--result-color); }
 .answer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .answer-option { position: relative; display: grid; place-items: center; min-height: max(90px, calc(4.1rem + 16px)); padding: 8px; background: var(--control-surface); border: 0; border-radius: var(--control-radius); font-size: var(--text-title); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; }
-.option-note { position: absolute; bottom: 8px; inset-inline: 8px; text-align: center; font-size: var(--text-body); font-weight: 600; line-height: 1.3; min-height: 1.3em; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 button.answer-option:hover { background: var(--control-hover); }
 .answer-option[data-result="correct"] { color: var(--positive); background: var(--control-surface); }
 .answer-option[data-selected][data-result="correct"] { color: var(--white); background: var(--positive); }
