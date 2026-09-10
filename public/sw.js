@@ -1,6 +1,6 @@
 // Bump this version whenever public assets change. Updates activate after all
 // existing app windows close, keeping an in-progress round on one app version.
-const CACHE = 'multiply-static-v20-blue-scale';
+const CACHE = 'multiply-static-v21-feedback-hierarchy';
 const ASSETS = [
   './', './index.html', './styles.css', './app.js', './core.js', './statistics.js', './answer-formats.js',
   './pwa.js', './favicon.svg', './manifest.webmanifest',

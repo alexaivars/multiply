@@ -9,7 +9,7 @@ for (const format of ['typed', 'choice']) {
       if (enlarged) await page.addStyleTag({ content: ':root { font-size: 36px; }' });
       if (format === 'choice') await page.getByRole('button', { name: 'Choose answer', exact: true }).click();
       await choosePractice(page);
-      const card = page.locator('.question-card');
+      const card = page.locator('.question-prompt');
       const neutral = await card.evaluate(node => getComputedStyle(node).backgroundColor);
       const surfaces = [];
       const colors = [];
